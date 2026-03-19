@@ -784,23 +784,39 @@
                 });
             });
 
-            onValue(ref(rtdb, 'HeartRate'), s => {
-                const hr = s.val();
-                document.getElementById('hr-web').innerText = hr !== null ? hr : '--';
-                if (hr !== null) {
-                    lastDataTimestamp = Date.now();
-                    if (connectionState !== 'connected') updateConnectionStatus('connected');
-                }
-            });
-            
-            onValue(ref(rtdb, 'SpO2'), s => {
-                const spo2 = s.val();
-                document.getElementById('spo2-web').innerText = spo2 !== null ? spo2 : '--';
-                if (spo2 !== null) {
-                    lastDataTimestamp = Date.now();
-                    if (connectionState !== 'connected') updateConnectionStatus('connected');
-                }
-            });
+// --- SMART SELECTOR FOR HEART RATE ---
+onValue(ref(rtdb, 'HeartRate'), (snapshot) => {
+    const data = snapshot.val();
+    let display;
+
+    if (data === null) {
+        display = "--";
+    } else if (typeof data === 'object') {
+        // If it's a folder/object, try to find a 'status' or just take the first item
+        display = data.status || Object.values(data)[0];
+    } else {
+        // If it's just a number (72) or a string ("Alert")
+        display = data;
+    }
+
+    document.getElementById('hr-web').innerText = display;
+});
+
+// --- SMART SELECTOR FOR SpO2 ---
+onValue(ref(rtdb, 'SpO2'), (snapshot) => {
+    const data = snapshot.val();
+    let display;
+
+    if (data === null) {
+        display = "--";
+    } else if (typeof data === 'object') {
+        display = data.status || Object.values(data)[0];
+    } else {
+        display = data;
+    }
+
+    document.getElementById('spo2-web').innerText = display;
+});
         }
 
         AOS.init();
